@@ -248,25 +248,73 @@
       playRandomTrack();
     });
 
+    // Web Audio CRT Telemetry & Visualizer Engine
     let audioCtx = null, analyser = null, sourceNode = null, visActive = false;
+
     function ensureAudio() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === "suspended") audioCtx.resume();
-    }
-    function beep(freq = 680, dur = 0.018, type = "square", vol = 0.02) {
-      if (!audioCtx || audioCtx.state !== "running") return;
       try {
-        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-        o.type = type; o.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        g.gain.setValueAtTime(vol, audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
-        o.connect(g); g.connect(audioCtx.destination);
-        o.start(); o.stop(audioCtx.currentTime + dur);
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) audioCtx = new AudioContextClass();
+        }
+        if (audioCtx && audioCtx.state === "suspended") {
+          audioCtx.resume();
+        }
       } catch (e) {}
     }
+
+    // Unlock Web Audio on first click, tap, or keypress anywhere on the page
+    ["pointerdown", "keydown", "touchstart"].forEach((evt) => {
+      window.addEventListener(evt, ensureAudio, { passive: true });
+    });
+
+    function beep(freq = 680, dur = 0.018, type = "square", vol = 0.03) {
+      ensureAudio();
+      if (!audioCtx || audioCtx.state !== "running") return;
+      try {
+        const now = audioCtx.currentTime;
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = type;
+        o.frequency.setValueAtTime(freq, now);
+        g.gain.setValueAtTime(vol, now);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.start(now);
+        o.stop(now + dur);
+      } catch (e) {}
+    }
+
+    // Per-character CRT terminal blip (used for both auto-typewriter and live keyboard typing)
+    function fPlayCRTBeep(sChar = "") {
+      if (sChar === " " || sChar === "\t") return;
+      if (sChar === "\n" || sChar === "Enter") {
+        beep(440, 0.03, "square", 0.035);
+      } else if (sChar === "Backspace") {
+        beep(520, 0.016, "sawtooth", 0.025);
+      } else if (sChar === "." || sChar === "!" || sChar === "?") {
+        beep(620, 0.024, "square", 0.03);
+      } else {
+        const jitterFreq = 820 + Math.floor((Math.random() - 0.5) * 110);
+        beep(jitterFreq, 0.015, "square", 0.028);
+      }
+    }
+
+    // Typewriter printout helper with per-letter CRT sound effect
+    async function fTypewriterPrint(oTargetElement, sFullText) {
+      for (let i = 0; i < sFullText.length; i++) {
+        const c = sFullText[i];
+        oTargetElement.textContent += c;
+        fPlayCRTBeep(c);
+        outputEl.scrollTop = outputEl.scrollHeight;
+        await sleep((c === "." || c === "!") ? 160 : (c === "," ? 80 : 25));
+      }
+    }
+
     function initVis() {
       ensureAudio();
-      if (!sourceNode) {
+      if (!sourceNode && audioCtx) {
         try {
           analyser = audioCtx.createAnalyser(); analyser.fftSize = 128;
           sourceNode = audioCtx.createMediaElementSource(mediaPlayer);
@@ -298,6 +346,7 @@
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
     async function runBoot() {
+      ensureAudio();
       const steps = [
         ["ATZ // INITIALIZING MODEM...", 450, "line dim"],
         ["ATDT 555-0199 // DIALING NODE: MIDNIGHT-MANIFESTO...", 700, "line dim"],
@@ -305,19 +354,13 @@
         ["BYPASSING MAINSTREAM FILTERS... SIGNAL LOCKED.", 500, "line system"]
       ];
       for (const [txt, ms, cls] of steps) {
-        printLine(txt, cls); beep(520, 0.04, "sawtooth", 0.025); await sleep(ms);
+        printLine(txt, cls); beep(520, 0.04, "sawtooth", 0.03); await sleep(ms);
       }
       const b = document.createElement("div"); b.className = "alien-banner";
       b.innerHTML = '<div class="alien-svg-wrap">' + REALISTIC_GREY_SVG + '</div><div class="welcome-text"><span id="tw"></span><span class="cursor" id="bc"></span></div>';
       outputEl.appendChild(b);
       const tw = document.getElementById("tw"), bc = document.getElementById("bc");
-      for (let i = 0; i < WELCOME_MESSAGE.length; i++) {
-        tw.textContent += WELCOME_MESSAGE[i];
-        if (i % 2 === 0) beep(740 + (i % 5) * 30, 0.012, "square", 0.015);
-        outputEl.scrollTop = outputEl.scrollHeight;
-        const c = WELCOME_MESSAGE[i];
-        await sleep((c === "." || c === "!") ? 160 : (c === "," ? 80 : 25));
-      }
+      await fTypewriterPrint(tw, WELCOME_MESSAGE);
       if (bc) bc.remove();
       await sleep(250);
       printMenu();
@@ -369,6 +412,13 @@
         printLine('>> UNKNOWN COMMAND. Type <span class="cmd-chip" data-cmd="play song">play song</span> or <span class="cmd-chip" data-cmd="ls /music">ls /music</span>.', "line");
       }
     }
+
+    // Play CRT beep for every character typed into the terminal prompt
+    cmdInput.addEventListener("keydown", (e) => {
+      if (e.key.length === 1 || e.key === "Backspace" || e.key === "Enter") {
+        fPlayCRTBeep(e.key);
+      }
+    });
 
     promptForm.addEventListener("submit", (e) => {
       e.preventDefault(); const v = cmdInput.value; cmdInput.value = ""; execCmd(v);
