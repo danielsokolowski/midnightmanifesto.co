@@ -114,7 +114,7 @@
 <body>
   <div class="bg-layer"></div>
   <div class="crt-overlay"></div>
-  <video id="media-player" src="song.mp4" loop playsinline preload="auto" style="display:none;"></video>
+  <video id="media-player" src="song.mp4" playsinline preload="auto" crossorigin="anonymous" style="display:none;"></video>
 
   <main class="terminal-wrapper" id="terminal-box">
     <header class="terminal-header">
@@ -133,6 +133,10 @@
   <footer class="crt-footer">CONTACT: <a id="email-link">[ DECRYPTING... ]</a></footer>
 
   <script>
+    // Set your GitHub username here so /music/ auto-discovery also works on custom domain midnightmanifesto.co
+    const GITHUB_USER = ""; 
+    const GITHUB_REPO = "midnightmanifesto.co";
+
     const DISCORD_URL = "https://discord.gg/3NYQ9qB8";
     const WELCOME_MESSAGE = "Welcome to the Midnight Manifesto. We talk about aliens, philosophy, conspiracies, and anything fringe. Have an open mind and be respectful. No drama. It's ok to agree to disagree. Let's get weird. Welcome Midnighter! ";
     const ENCODED_USER = "Y29udGFjdA==";
@@ -191,6 +195,58 @@
       el.textContent = addr.toUpperCase();
       el.href = "mailto:" + addr;
     })();
+
+    // Playlist & GitHub /music/ Auto-Discovery
+    let playlist = [{ name: "song.mp4", url: "song.mp4" }];
+    let currentTrackIndex = -1;
+
+    async function loadMusicFolder() {
+      let user = GITHUB_USER;
+      if (!user && window.location.hostname.endsWith(".github.io")) {
+        user = window.location.hostname.split(".")[0];
+      }
+      if (!user) return;
+      try {
+        const res = await fetch("https://api.github.com/repos/" + user + "/" + GITHUB_REPO + "/contents/music");
+        if (!res.ok) return;
+        const files = await res.json();
+        if (Array.isArray(files)) {
+          const tracks = files
+            .filter(f => f.type === "file" && /\.(mp4|mp3|wav|ogg|webm|m4a)$/i.test(f.name))
+            .map(f => ({ name: f.name, url: "music/" + encodeURIComponent(f.name) }));
+          if (tracks.length > 0) playlist = tracks;
+        }
+      } catch (e) {}
+    }
+    loadMusicFolder();
+
+    function formatTitle(filename) {
+      return filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").toUpperCase();
+    }
+
+    function playTrack(trackObj) {
+      initVis();
+      mediaPlayer.src = trackObj.url;
+      mediaPlayer.play().then(() => {
+        printLine('>> STREAMING TRANSMISSION: "' + formatTitle(trackObj.name) + '" [SIGNAL ACTIVE] &#128266;', "line system");
+      }).catch((err) => {
+        printLine(">> AUDIO ERROR: " + err.message, "line");
+      });
+    }
+
+    function playRandomTrack() {
+      if (playlist.length === 0) return;
+      let idx = Math.floor(Math.random() * playlist.length);
+      if (playlist.length > 1 && idx === currentTrackIndex) {
+        idx = (idx + 1) % playlist.length;
+      }
+      currentTrackIndex = idx;
+      playTrack(playlist[idx]);
+    }
+
+    mediaPlayer.addEventListener("ended", () => {
+      playRandomTrack();
+    });
 
     let audioCtx = null, analyser = null, sourceNode = null, visActive = false;
     function ensureAudio() {
@@ -272,6 +328,7 @@
       printLine(
         'AVAILABLE COMMANDS (TYPE BELOW OR TAP TO EXECUTE):<br/>' +
         '<span class="cmd-chip" data-cmd="play song">[ play song ]</span>' +
+        '<span class="cmd-chip" data-cmd="ls /music">[ ls /music ]</span>' +
         '<span class="cmd-chip" data-cmd="join discord">[ join discord ]</span>' +
         '<span class="cmd-chip" data-cmd="stop">[ stop ]</span>' +
         '<span class="cmd-chip" data-cmd="contact">[ contact ]</span>' +
@@ -280,17 +337,20 @@
       );
     }
 
-    function execCmd(raw) {
+    async function execCmd(raw) {
       const cmd = raw.trim().toLowerCase(); if (!cmd) return;
       ensureAudio(); beep(880, 0.03, "square", 0.03);
       printLine("midnighter@manifesto:~$ " + raw, "line dim");
-      if (cmd === "play song" || cmd === "play" || cmd === "1") {
-        initVis();
-        mediaPlayer.play().then(() => {
-          printLine('>> STREAMING TRANSMISSION: "THIRTY FOUR HOURS" [SIGNAL ACTIVE] &#128266;', "line system");
-        }).catch((err) => {
-          printLine(">> AUDIO ERROR: " + err.message, "line");
+      if (cmd === "play song" || cmd === "play" || cmd === "next" || cmd === "1") {
+        await loadMusicFolder();
+        playRandomTrack();
+      } else if (cmd === "ls /music" || cmd === "ls music" || cmd === "ls" || cmd === "dir") {
+        await loadMusicFolder();
+        let out = ">> DIRECTORY LISTING OF /music/ (" + playlist.length + " TRACKS FOUND):<br/>";
+        playlist.forEach((t, i) => {
+          out += '<span class="cmd-chip" data-track="' + i + '">[' + (i + 1) + '] ' + t.name + '</span>';
         });
+        printLine(out, "line system");
       } else if (cmd === "stop" || cmd === "pause") {
         mediaPlayer.pause(); printLine(">> TRANSMISSION PAUSED.", "line");
       } else if (cmd === "join discord" || cmd === "discord" || cmd === "join" || cmd === "2") {
@@ -306,7 +366,7 @@
       } else if (cmd === "help" || cmd === "?") {
         printMenu();
       } else {
-        printLine('>> UNKNOWN COMMAND. Type <span class="cmd-chip" data-cmd="play song">play song</span> or <span class="cmd-chip" data-cmd="join discord">join discord</span>.', "line");
+        printLine('>> UNKNOWN COMMAND. Type <span class="cmd-chip" data-cmd="play song">play song</span> or <span class="cmd-chip" data-cmd="ls /music">ls /music</span>.', "line");
       }
     }
 
@@ -314,7 +374,17 @@
       e.preventDefault(); const v = cmdInput.value; cmdInput.value = ""; execCmd(v);
     });
     outputEl.addEventListener("click", (e) => {
-      const c = e.target.closest(".cmd-chip"); if (c && c.dataset.cmd) execCmd(c.dataset.cmd);
+      const c = e.target.closest(".cmd-chip");
+      if (!c) return;
+      if (c.dataset.cmd) {
+        execCmd(c.dataset.cmd);
+      } else if (c.dataset.track !== undefined) {
+        const idx = parseInt(c.dataset.track, 10);
+        if (playlist[idx]) {
+          currentTrackIndex = idx;
+          playTrack(playlist[idx]);
+        }
+      }
     });
     terminalBox.addEventListener("click", (e) => {
       ensureAudio(); if (!e.target.closest(".cmd-chip")) cmdInput.focus();
