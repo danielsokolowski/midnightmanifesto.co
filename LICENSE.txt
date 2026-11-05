@@ -1,0 +1,23 @@
+MIDNIGHT MANIFESTO™ // PROPRIETARY LICENSE & COPYRIGHT NOTICE
+Copyright (c) 2026 Midnight Manifesto, Decker Mac & STRIBE. All Rights Reserved.
+
+1. PROPRIETARY ASSETS & MUSIC
+All audio tracks, musical compositions, sound recordings, visual artwork, 
+emblems, logos, and branding associated with "Midnight Manifesto"™ contained 
+within this repository are the exclusive proprietary property of Midnight 
+Manifesto and its creators.
+
+2. RESTRICTIONS
+No part of this repository—including but not limited to audio files (.mp4, .mp3, 
+.wav), images (.jpg, .webp, .png, .svg), branding, or custom interface code—may 
+be copied, reproduced, distributed, remixed, sampled, uploaded to third-party 
+platforms, or used for commercial or non-commercial purposes without explicit 
+prior written permission from the copyright holders.
+
+3. PUBLIC VIEWING ONLY
+Access to this repository via GitHub Pages is provided strictly for personal 
+viewing and streaming through the official Midnight Manifesto web terminal. 
+Public visibility of the source repository does not grant any license, 
+copyright, or trademark rights to any third party.
+
+Contact: TBD
