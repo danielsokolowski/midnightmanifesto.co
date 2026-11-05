@@ -20,4 +20,4 @@ viewing and streaming through the official Midnight Manifesto web terminal.
 Public visibility of the source repository does not grant any license, 
 copyright, or trademark rights to any third party.
 
-Contact: TBD
+Contact: decker.mac.research@gmail.com
