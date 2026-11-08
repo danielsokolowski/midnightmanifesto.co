@@ -4,6 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MIDNIGHT MANIFESTO // CRT TERMINAL</title>
+  <meta name="description" content="Welcome to the Midnight Manifesto. We talk about aliens, philosophy, conspiracies, and anything fringe. Have an open mind and be respectful. No drama. It's ok to agree to disagree. Let's get weird. Welcome Midnighter!" />
+  <meta name="theme-color" content="#ff33ff" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://midnightmanifesto.co/" />
+  <meta property="og:title" content="MIDNIGHT MANIFESTO // CRT TERMINAL" />
+  <meta property="og:description" content="Welcome to the Midnight Manifesto. We talk about aliens, philosophy, conspiracies, and anything fringe. Have an open mind and be respectful. No drama. It's ok to agree to disagree. Let's get weird. Welcome Midnighter!" />
+  <meta property="og:image" content="https://midnightmanifesto.co/logo.webp" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="MIDNIGHT MANIFESTO // CRT TERMINAL" />
+  <meta name="twitter:description" content="Welcome to the Midnight Manifesto. We talk about aliens, philosophy, conspiracies, and anything fringe. Have an open mind and be respectful. No drama. It's ok to agree to disagree. Let's get weird. Welcome Midnighter!" />
+  <meta name="twitter:image" content="https://midnightmanifesto.co/logo.webp" />
   <style>
     :root {
       --mag: #ff33ff;
@@ -133,12 +144,12 @@
   <footer class="crt-footer">CONTACT: <a id="email-link">[ DECRYPTING... ]</a></footer>
 
   <script>
-    // Set your GitHub username here so /music/ auto-discovery also works on custom domain midnightmanifesto.co
-    const GITHUB_USER = "danielsokolowski"; 
-    const GITHUB_REPO = "midnightmanifesto.co";
+    // Base64-encoded GitHub coordinates for /music/ auto-discovery
+    const ENCODED_GH_USER = "ZGFuaWVsc29rb2xvd3NraQ==";
+    const ENCODED_GH_REPO = "bWlkbmlnaHRtYW5pZmVzdG8uY28=";
 
     const DISCORD_URL = "https://discord.gg/2H7Qshhqhx";
-    const WELCOME_MESSAGE = "Welcome to the Midnight Manifesto. We talk about aliens, philosophy, conspiracies, and anything fringe. Have an open mind and be respectful. No drama. It's ok to agree to disagree. Let's get weird. Welcome Midnighter! ";
+    const WELCOME_MESSAGE = ((document.querySelector('meta[name="description"]')?.getAttribute("content") || "").trim() + " ");
     const ENCODED_USER = "ZGVja2VyLm1hYy5yZXNlYXJjaA==";
     const ENCODED_DOMAIN = "Z21haWwuY29t";              
 
@@ -201,13 +212,14 @@
     let currentTrackIndex = -1;
 
     async function loadMusicFolder() {
-      let user = GITHUB_USER;
+      let user = ENCODED_GH_USER ? atob(ENCODED_GH_USER) : "";
+      let repo = ENCODED_GH_REPO ? atob(ENCODED_GH_REPO) : "";
       if (!user && window.location.hostname.endsWith(".github.io")) {
         user = window.location.hostname.split(".")[0];
       }
-      if (!user) return;
+      if (!user || !repo) return;
       try {
-        const res = await fetch("https://api.github.com/repos/" + user + "/" + GITHUB_REPO + "/contents/music");
+        const res = await fetch("https://api.github.com/repos/" + user + "/" + repo + "/contents/music");
         if (!res.ok) return;
         const files = await res.json();
         if (Array.isArray(files)) {
