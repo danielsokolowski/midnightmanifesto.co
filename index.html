@@ -58,10 +58,40 @@
       backdrop-filter: blur(3px); display: flex; flex-direction: column; overflow: hidden;
     }
     .terminal-header {
-      display: flex; justify-content: space-between; align-items: center;
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
       padding: 8px 16px; background: rgba(255, 51, 255, 0.24);
       border-bottom: 1px solid var(--mag-dim); font-size: 0.84rem;
       color: #fff; font-weight: bold; letter-spacing: 1.5px; text-shadow: var(--glow);
+    }
+    .header-right {
+      display: flex; align-items: center; gap: 14px;
+    }
+    .yt-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 13px; border-radius: 999px;
+      background: rgba(255, 51, 255, 0.34); border: 1px solid var(--mag-hi);
+      color: #fff; text-decoration: none; font-size: 0.78rem; font-weight: bold;
+      letter-spacing: 1.2px; white-space: nowrap; cursor: pointer;
+      text-shadow: var(--glow);
+      box-shadow: 0 0 12px rgba(255, 0, 255, 0.45), inset 0 0 8px rgba(255, 179, 255, 0.25);
+      transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+    .yt-pill svg {
+      width: 14px; height: 14px; flex-shrink: 0;
+      filter: drop-shadow(0 0 4px rgba(255, 51, 255, 0.95));
+    }
+    .yt-pill:hover {
+      background: #fff; color: #14001f; border-color: #fff; text-shadow: none;
+      box-shadow: 0 0 18px #ff66ff, 0 0 28px rgba(255, 0, 255, 0.75);
+      transform: translateY(-1px);
+    }
+    .yt-pill:hover svg { filter: none; }
+    @media (max-width: 720px) {
+      .baud-status { display: none; }
+      .terminal-header { font-size: 0.78rem; padding: 8px 12px; letter-spacing: 1px; }
+    }
+    @media (max-width: 520px) {
+      .tty-node { display: none; }
     }
     .status-dot {
       display: inline-block; width: 9px; height: 9px; border-radius: 50%;
@@ -129,8 +159,16 @@
 
   <main class="terminal-wrapper" id="terminal-box">
     <header class="terminal-header">
-      <div><span class="status-dot"></span>MIDNIGHT_MANIFESTO // TTY-NODE-01</div>
-      <div>BAUD: 28800 // CARRIER: LOCKED</div>
+      <div><span class="status-dot"></span>MIDNIGHT_MANIFESTO<span class="tty-node"> // TTY-NODE-01</span></div>
+      <div class="header-right">
+        <span class="baud-status">BAUD: 28800 // CARRIER: LOCKED</span>
+        <a href="https://www.youtube.com/@MidnightManifesto-MNX" target="_blank" rel="noopener noreferrer" class="yt-pill" id="yt-pill-btn" title="Watch Midnight Manifesto on YouTube">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/>
+          </svg>
+          YOUTUBE
+        </a>
+      </div>
     </header>
     <section class="terminal-body" id="terminal-output"></section>
     <form class="prompt-row" id="prompt-form" autocomplete="off">
@@ -149,6 +187,7 @@
     const ENCODED_GH_REPO = "bWlkbmlnaHRtYW5pZmVzdG8uY28=";
 
     const DISCORD_URL = "https://discord.gg/2H7Qshhqhx";
+    const YOUTUBE_URL = "https://www.youtube.com/@MidnightManifesto-MNX";
     const WELCOME_MESSAGE = ((document.querySelector('meta[name="description"]')?.getAttribute("content") || "").trim() + " ");
     const ENCODED_USER = "ZGVja2VyLm1hYy5yZXNlYXJjaA==";
     const ENCODED_DOMAIN = "Z21haWwuY29t";              
@@ -181,7 +220,7 @@
         '<path d="M18 62 C26 55, 44 58, 54 68 M102 62 C94 55, 76 58, 66 68" fill="none" stroke="#590066" stroke-width="2.2" opacity="0.75"/>' +
         '<path d="M24 86 C32 95, 42 101, 49 108 M96 86 C88 95, 78 101, 71 108" fill="none" stroke="#ffb3ff" stroke-width="1" opacity="0.55"/>' +
         '<path d="M19 69 C21 57, 36 56, 51 67 C54 70, 53 81, 44 84 C31 87, 18 79, 19 69 Z" fill="url(#eyeVoid)" stroke="#ff99ff" stroke-width="1.4"/>' +
-        '<path d="M101 69 C99 57, 84 56, 69 67 C66 70, 67 81, 76 84 C89 87, 102 79, 101 69 Z" fill="url(#eyeVoid)" stroke="#ff99ff" stroke-width="1.4"/>' +
+        '<path d="M101 69 C99 57, 84 56, 69 67 C66 70, 67 81, 76 84 C89 87,102 79, 101 69 Z" fill="url(#eyeVoid)" stroke="#ff99ff" stroke-width="1.4"/>' +
         '<ellipse cx="33" cy="67" rx="7" ry="3.2" transform="rotate(14 33 67)" fill="#ffccf9" opacity="0.75"/>' +
         '<circle cx="42" cy="74" r="1.6" fill="#ffffff" opacity="0.85"/>' +
         '<ellipse cx="87" cy="67" rx="7" ry="3.2" transform="rotate(-14 87 67)" fill="#ffccf9" opacity="0.75"/>' +
@@ -197,6 +236,7 @@
     const terminalBox = document.getElementById("terminal-box");
     const mediaPlayer = document.getElementById("media-player");
     const logoBtn = document.getElementById("logo-btn");
+    const ytPillBtn = document.getElementById("yt-pill-btn");
     const canvas = document.getElementById("visualizer");
     const ctx = canvas.getContext("2d");
 
@@ -385,6 +425,7 @@
         '<span class="cmd-chip" data-cmd="play song">[ play song ]</span>' +
         '<span class="cmd-chip" data-cmd="ls /music">[ ls /music ]</span>' +
         '<span class="cmd-chip" data-cmd="join discord">[ join discord ]</span>' +
+        '<span class="cmd-chip" data-cmd="youtube">[ youtube ]</span>' +
         '<span class="cmd-chip" data-cmd="stop">[ stop ]</span>' +
         '<span class="cmd-chip" data-cmd="contact">[ contact ]</span>' +
         '<span class="cmd-chip" data-cmd="help">[ help ]</span>',
@@ -411,6 +452,9 @@
       } else if (cmd === "join discord" || cmd === "discord" || cmd === "join" || cmd === "2") {
         printLine(">> ROUTING TO #rules-guidelines... LAUNCHING DISCORD PORTAL &#128760;", "line system");
         window.open(DISCORD_URL, "_blank", "noopener,noreferrer");
+      } else if (cmd === "youtube" || cmd === "yt" || cmd === "watch" || cmd === "channel" || cmd === "3") {
+        printLine(">> TUNING VIDEO FREQUENCY... LAUNCHING YOUTUBE CHANNEL &#128250;", "line system");
+        window.open(YOUTUBE_URL, "_blank", "noopener,noreferrer");
       } else if (cmd === "contact" || cmd === "email") {
         const d = atob(ENCODED_USER) + "@" + atob(ENCODED_DOMAIN);
         printLine('>> DIRECT COMM: <a href="mailto:' + d + '" style="color:#fff;">' + d + '</a>', "line system");
@@ -448,8 +492,13 @@
         }
       }
     });
+    ytPillBtn.addEventListener("click", () => {
+      ensureAudio();
+      beep(880, 0.03, "square", 0.03);
+      printLine(">> TUNING VIDEO FREQUENCY... LAUNCHING YOUTUBE CHANNEL &#128250;", "line system");
+    });
     terminalBox.addEventListener("click", (e) => {
-      ensureAudio(); if (!e.target.closest(".cmd-chip")) cmdInput.focus();
+      ensureAudio(); if (!e.target.closest(".cmd-chip, .yt-pill")) cmdInput.focus();
     });
     logoBtn.addEventListener("click", () => execCmd(mediaPlayer.paused ? "play song" : "stop"));
     window.addEventListener("DOMContentLoaded", runBoot);
